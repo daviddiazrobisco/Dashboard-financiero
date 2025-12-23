@@ -1798,11 +1798,6 @@ updateQA();
     return ys.length >= 2 ? +ys[ys.length-2] : getBaseYear();
   }
 
-  function isOperativoVisible(){
-    const pane = $("tab-operativo");
-    return !!(pane && pane.classList.contains("active"));
-  }
-
   // IMPORTANTÍSIMO: coherencia con HOME => usamos getAmount (index)
   function sumCodeYear(code, year){
     if (typeof getAmount === "function") return getAmount(code, year);
@@ -1879,6 +1874,7 @@ updateQA();
     const values = [];
     const colors = [];
     const meta = [];
+    const mapByKey = {};
 
     let cum = 0;
 
@@ -1901,14 +1897,16 @@ updateQA();
       // Colores “tipo PyG”
       // total: azul; subida: verde; bajada: naranja
       const isTotalStyle = !!b.totalStyle;
-      if (isTotalStyle) colors.push("rgba(96,165,250,.70)");
-      else if (v >= 0) colors.push("rgba(110,231,183,.55)");
-      else colors.push("rgba(251,146,60,.55)");
+      if (isTotalStyle) colors.push("rgba(96,165,250,.75)");
+      else if (v >= 0) colors.push("rgba(34,197,94,.68)");
+      else colors.push("rgba(245,158,11,.78)");
 
-      meta.push({ ...b, value: v });
+      const packed = { ...b, value: v };
+      meta.push(packed);
+      mapByKey[b.key] = v;
     }
 
-    return { labels, offsets, values, colors, meta };
+    return { labels, offsets, values, colors, meta, mapByKey };
   }
 
   // Etiquetas en waterfall (cápsula solo valor)
@@ -1978,6 +1976,56 @@ updateQA();
     }
   };
 
+  // Conectores entre barras (estilo waterfall clásico)
+  const waterfallConnectorPlugin = {
+    id: "opWaterfallConnectorPlugin",
+    afterDatasetsDraw(chart){
+      const cfg = chart?.config || {};
+      const wfData = cfg._wfData;
+      if (!wfData) return;
+
+      const meta = chart.getDatasetMeta(1); // dataset de valores
+      const bars = meta?.data || [];
+      if (!bars.length) return;
+
+      const yScale = chart.scales?.y;
+      if (!yScale) return;
+
+      const offsets = wfData.offsets || [];
+      const values = wfData.values || [];
+
+      const ctx = chart.ctx;
+      ctx.save();
+      ctx.strokeStyle = "rgba(255,255,255,.18)";
+      ctx.lineWidth = 2;
+
+      for (let i=0; i<bars.length-1; i++){
+        const bar = bars[i];
+        const next = bars[i+1];
+        if (!bar || !next) continue;
+
+        const p1 = bar.getProps(["x","width"], true);
+        const p2 = next.getProps(["x","width"], true);
+
+        const endVal = (offsets[i] ?? 0) + (values[i] ?? 0);
+        const nextStart = offsets[i+1] ?? 0;
+
+        const y1 = yScale.getPixelForValue(endVal);
+        const y2 = yScale.getPixelForValue(nextStart);
+
+        const x1 = p1.x + (p1.width ? p1.width/2 : 0);
+        const x2 = p2.x - (p2.width ? p2.width/2 : 0);
+
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+      }
+
+      ctx.restore();
+    }
+  };
+
   // Etiqueta especial para EBITDA: importe + % debajo (en el gráfico “La película”)
   const ebitdaTwoLineLabelPlugin = {
     id: "opEbitdaTwoLineLabelPlugin",
@@ -2031,6 +2079,8 @@ updateQA();
   // ------------------------
   // Drill-down panel
   // ------------------------
+  let opDetailChart = null;
+
   function renderDetail(metaItem, year){
     $("opDetailTitle").textContent = metaItem.label?.join ? metaItem.label.join(" ") : String(metaItem.label);
     $("opDetailSub").textContent = `Año ${year} · ${fmtM(metaItem.value)} · Desglose y evolución.`;
@@ -2060,6 +2110,44 @@ updateQA();
     `;
 
     const years = (window.availableYears || []).slice(-4).map(Number);
+    const contableOn = !!$("opToggleContable")?.checked;
+
+    // Evolución en gráfico
+    const evoVals = years.map(y => {
+      const wfMap = buildWaterfallSeries(y, contableOn).mapByKey || {};
+      if (wfMap[metaItem.key] !== undefined) return wfMap[metaItem.key];
+      // fallback suma de códigos
+      return (metaItem.codes || []).reduce((acc,c)=> acc + sumCodeYear(c, y), 0);
+    });
+
+    if (opDetailChart){ opDetailChart.destroy(); opDetailChart = null; }
+    const ctx = $("opDetailChart")?.getContext("2d");
+    if (ctx){
+      opDetailChart = new Chart(ctx, {
+        type:"bar",
+        data:{
+          labels: years,
+          datasets:[{
+            label: metaItem.label?.join ? metaItem.label.join(" ") : metaItem.label,
+            data: evoVals,
+            borderWidth:1,
+            backgroundColor: evoVals.map(v => v >= 0 ? "rgba(34,197,94,.65)" : "rgba(245,158,11,.78)")
+          }]
+        },
+        options:{
+          responsive:true,
+          plugins:{
+            legend:{ display:false },
+            tooltip:{ callbacks:{ label:(c)=> `${c.dataset.label}: ${fmtEURSafe(c.parsed.y)}` } }
+          },
+          scales:{
+            x:{ ticks:{ color:"#aab6d6" }, grid:{ display:false } },
+            y:{ ticks:{ color:"#aab6d6", maxTicksLimit:4, callback:(v)=>fmtAxisM(v) }, grid:{ color:"rgba(255,255,255,.08)" } }
+          }
+        }
+      });
+    }
+
     const evoRows = rows.map(r => ({
       name: r.name,
       vals: years.map(y => sumCodeYear(r.code, y))
@@ -2299,12 +2387,15 @@ updateQA();
           renderDetail(metaItem, yearShown);
         }
       },
-      plugins:[waterfallLabelPlugin]
+      plugins:[waterfallLabelPlugin, waterfallConnectorPlugin]
     });
+
+    // guardamos data para el plugin de conectores
+    wfChart.config._wfData = { offsets: wf.offsets, values: wf.values };
   }
 
   function renderOperativo(){
-    if (!isOperativoVisible()) return;
+    if (typeof Chart === "undefined") return;
     if (!window.availableYears || !window.availableYears.length) return;
 
     const baseY = getBaseYear();
