@@ -2411,6 +2411,9 @@ updateQA();
       return;
     }
     opNeedsRender = false;
+  function renderOperativo(){
+    if (typeof Chart === "undefined") return;
+    if (!window.availableYears || !window.availableYears.length) return;
 
     const baseY = getBaseYear();
     const compY = getCompYear();

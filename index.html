@@ -1,3 +1,22 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dashboard financiero</title>
+
+  <!-- CSS del proyecto -->
+  <link rel="stylesheet" href="./style.css" />
+
+  <!-- Librerías (igual que en CodePen) -->
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <!-- JS del proyecto -->
+  <script src="./script.js" defer></script>
+</head>
+<body>
+
 <div class="app">
   <header class="topbar">
     <div class="brand">
@@ -237,6 +256,19 @@
         </div>
       </div>
     </div>
+          <div class="opDetailBlock">
+            <div class="opDetailLabel">Composición (año seleccionado)</div>
+            <div id="opDetailTable"></div>
+          </div>
+
+          <div class="opDetailBlock">
+            <div class="opDetailLabel">Evolución (4 años)</div>
+            <canvas id="opDetailChart" height="140"></canvas>
+            <div id="opDetailEvo"></div>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- FILA 3: tabla resumen -->
     <div class="card">
@@ -281,3 +313,6 @@
   </div>
 
 </div>
+</body>
+</html>
+
