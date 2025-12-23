@@ -1798,11 +1798,6 @@ updateQA();
     return ys.length >= 2 ? +ys[ys.length-2] : getBaseYear();
   }
 
-  function isOperativoVisible(){
-    const pane = $("tab-operativo");
-    return !!(pane && pane.classList.contains("active"));
-  }
-
   // IMPORTANTÍSIMO: coherencia con HOME => usamos getAmount (index)
   function sumCodeYear(code, year){
     if (typeof getAmount === "function") return getAmount(code, year);
@@ -2400,7 +2395,7 @@ updateQA();
   }
 
   function renderOperativo(){
-    if (!isOperativoVisible()) return;
+    if (typeof Chart === "undefined") return;
     if (!window.availableYears || !window.availableYears.length) return;
 
     const baseY = getBaseYear();

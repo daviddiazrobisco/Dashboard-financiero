@@ -466,6 +466,32 @@ body{
   .opGridTop{ grid-template-columns: 1fr; }
   .opGridMid{ grid-template-columns: 1fr; }
   .opHint{ max-width: 100%; }
+.opDetailBlock{ padding-top: 8px; border-top: 1px solid rgba(255,255,255,.08); }
+.opDetailLabel{ font-size: 12px; color: rgba(255,255,255,.75); margin-bottom: 8px; }
+.opDetailBlock canvas{ margin-bottom: 8px; }
+
+.tbl{
+  width:100%;
+  border-collapse:collapse;
+  font-size:12px;
+}
+.tbl th, .tbl td{
+  padding:8px 8px;
+  border-bottom:1px solid rgba(255,255,255,.08);
+}
+.tbl th{
+  text-align:left;
+  color: var(--muted);
+}
+.tbl td{
+  color: rgba(234,240,255,.95);
+}
+.tbl tr:last-child th, .tbl tr:last-child td{ border-bottom:none; }
+
+@media (max-width: 980px){
+  .opGridTop{ grid-template-columns: 1fr; }
+  .opGridMid{ grid-template-columns: 1fr; }
+  .opHint{ max-width: 100%; }
   .opControls{ flex-wrap:wrap; justify-content:flex-start; }
 }
 
