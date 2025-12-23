@@ -1,0 +1,282 @@
+<div class="app">
+  <header class="topbar">
+    <div class="brand">
+      <div class="title">Dashboard para dueños</div>
+      <div class="subtitle">Visual, directo y comparable (empresa vs empresa + sector)</div>
+    </div>
+
+    <div class="uploaders">
+      <label class="file">
+        <span>CSV empresa (obligatorio)</span>
+        <input id="fileCompany" type="file" accept=".csv" />
+      </label>
+
+      <label class="file">
+        <span>CSV sector (opcional)</span>
+        <input id="fileSector" type="file" accept=".csv" />
+      </label>
+    </div>
+  </header>
+
+  <section class="controls card">
+    <div class="control">
+      <label>Año base</label>
+      <select id="baseYear" disabled></select>
+    </div>
+
+    <div class="control">
+      <label>Año comparativo</label>
+      <select id="compYear" disabled></select>
+    </div>
+
+    <div class="control toggle">
+      <label>Comparativa sector</label>
+      <div class="toggleRow">
+        <input id="sectorToggle" type="checkbox" disabled />
+        <span id="sectorStatus" class="hint">OFF</span>
+      </div>
+    </div>
+
+    <div class="control wide">
+      <label>Estado</label>
+      <div id="status" class="status">Sube el CSV de empresa para empezar.</div>
+    </div>
+  </section>
+
+  <!-- TABS -->
+  <nav class="tabs card">
+    <button class="tab active" data-tab="home">Home</button>
+    <button class="tab" data-tab="operativo" id="tabBtnOperativo">Operativo</button>
+    <button class="tab" data-tab="cash">Caja</button>
+    <button class="tab" data-tab="profit">Rentabilidad</button>
+  </nav>
+
+  <!-- HOME -->
+  <main id="tab-home" class="tabPane active">
+    <!-- CONSOLIDACIÓN / QA -->
+    <section id="qa" class="card qa">
+      <div class="qaHeader">
+        <div>
+          <div class="qaTitle">Consolidación</div>
+          <div class="qaSub">Semáforo para asegurarnos de que el CSV es “fuente oficial”.</div>
+        </div>
+        <div id="qaSummary" class="qaSummary">—</div>
+      </div>
+      <div id="qaBody" class="qaBody">
+        <div class="qaEmpty">Aún no hay datos. Sube el CSV de empresa.</div>
+      </div>
+    </section>
+
+    <!-- RESUMEN 20s -->
+    <section id="ownerSummary" class="card">
+      <div class="sumHeader">
+        <div>
+          <div class="sumTitle">Resumen en 20 segundos</div>
+          <div class="sumSub">Qué mirar primero (rentabilidad, caja y riesgo).</div>
+        </div>
+        <div id="sumHint" class="sumHint">—</div>
+      </div>
+
+      <div class="sumGrid">
+        <div id="sumProfit" class="sumCard">
+          <div class="sumName">Rentabilidad</div>
+          <div class="sumState">—</div>
+          <div class="sumLine">Sube datos para ver el estado.</div>
+        </div>
+
+        <div id="sumCash" class="sumCard">
+          <div class="sumName">Caja</div>
+          <div class="sumState">—</div>
+          <div class="sumLine">Sube datos para ver el estado.</div>
+        </div>
+
+        <div id="sumRisk" class="sumCard">
+          <div class="sumName">Riesgo</div>
+          <div class="sumState">—</div>
+          <div class="sumLine">Sube datos para ver el estado.</div>
+        </div>
+      </div>
+
+      <div class="sumGrid2">
+        <div id="sumChanges" class="sumWide">
+          <div class="sumWideTitle">Qué ha cambiado</div>
+          <div class="sumWideBody">—</div>
+        </div>
+        <div id="sumWhere" class="sumWide">
+          <div class="sumWideTitle">Dónde está el dinero</div>
+          <div class="sumWideBody">—</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- GRÁFICOS MACRO (HOME) -->
+    <section id="homeMacro" class="macroGrid">
+      <div class="card macroCard">
+        <div class="macroHead">
+          <div>
+            <div class="macroTitle">Ventas vs EBITDA</div>
+            <div class="macroSub">Línea: ventas · Barra: EBITDA (con % sobre ventas)</div>
+          </div>
+        </div>
+        <canvas id="homeChartSalesEbitda" height="200"></canvas>
+      </div>
+
+      <div class="card macroCard">
+        <div class="macroHead">
+          <div>
+            <div class="macroTitle">Ventas vs Punto de equilibrio</div>
+            <div class="macroSub">Así ves la distancia al punto de equilibrio</div>
+          </div>
+        </div>
+        <canvas id="homeChartSalesBep" height="200"></canvas>
+      </div>
+
+      <div class="card macroCard">
+        <div class="macroHead">
+          <div>
+            <div class="macroTitle">Deuda vs EBITDA</div>
+            <div class="macroSub">Línea: deuda neta · Barra: EBITDA</div>
+          </div>
+        </div>
+        <canvas id="homeChartDebtEbitda" height="200"></canvas>
+      </div>
+    </section>
+
+    <!-- KPIs -->
+    <section id="kpis"></section>
+
+    <!-- BLOQUE: ENTRA / SALE -->
+    <section id="cashflow" class="card">
+      <div class="cashHeader">
+        <div>
+          <div class="cashTitle">Cómo entra y sale el dinero</div>
+          <div id="cashSub" class="cashSub">Sube el CSV para ver este bloque.</div>
+        </div>
+
+        <div class="cashHint">
+          <label class="miniToggle">
+            <input id="cashCompare" type="checkbox" disabled />
+            Comparar con año comparativo
+          </label>
+          <div style="margin-top:6px;">
+            Entra y Sale son positivos.<br />
+            “Caja que se queda/uso” se añade para cuadrar columnas.
+          </div>
+        </div>
+      </div>
+
+      <canvas id="cashChart" height="140"></canvas>
+      <div id="cashTable" class="cashTable"></div>
+
+      <div class="cashFootnote">
+        Nota: “Caja que se queda” aparece en <b>SALE</b> solo para cuadrar visualmente (es ahorro de caja).
+        “Caja que uso” aparece en <b>ENTRA</b> solo para cuadrar visualmente (has consumido caja).
+      </div>
+    </section>
+  </main>
+
+  <!-- OPERATIVO -->
+  <main id="tab-operativo" class="tabPane">
+    <div class="opHeaderRow">
+      <div class="opHint">
+        Operativo = cómo funciona tu negocio (antes de deuda e impuestos). Aquí explicamos el “por qué”.
+      </div>
+
+      <div class="opControls">
+        <label class="opCtl">
+          Año (waterfall)
+          <select id="opYearSelect"></select>
+        </label>
+
+        <label class="opCtl opToggle">
+          <input type="checkbox" id="opToggleContable" />
+          Ver contable
+        </label>
+      </div>
+    </div>
+
+    <!-- FILA 1: 2 gráficos grandes -->
+    <div class="opGridTop">
+      <div class="card macroCard">
+        <div class="cardTitle">La película: Ventas vs EBITDA</div>
+        <canvas id="opChartSalesEbitda" height="220"></canvas>
+      </div>
+
+      <div class="card macroCard">
+        <div class="cardTitle">La palanca: Ventas vs Punto de equilibrio</div>
+        <div class="opNote" id="opSafetyNote">—</div>
+        <canvas id="opChartSalesBep" height="220"></canvas>
+      </div>
+    </div>
+
+    <!-- FILA 2: Waterfall + panel detalle -->
+    <div class="opGridMid">
+      <div class="card">
+        <div class="cardTitle">Composición del PyG (waterfall)</div>
+        <div class="opSub">Pincha una barra para ver composición y evolución (4 años).</div>
+        <canvas id="opChartWaterfall" height="280"></canvas>
+      </div>
+
+      <div class="card opDetail" id="opDetailPanel">
+        <div class="opDetailHead">
+          <div class="opDetailTitle" id="opDetailTitle">Detalle</div>
+          <div class="opDetailSub" id="opDetailSub">Selecciona una barra del waterfall.</div>
+        </div>
+
+        <div class="opDetailBody">
+          <div class="opDetailBlock">
+            <div class="opDetailLabel">Composición (año seleccionado)</div>
+            <div id="opDetailTable"></div>
+          </div>
+
+          <div class="opDetailBlock">
+            <div class="opDetailLabel">Evolución (4 años)</div>
+            <div id="opDetailEvo"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FILA 3: tabla resumen -->
+    <div class="card">
+      <div class="cardTitle">Resumen operativo (4 años)</div>
+      <div id="opSummaryTable"></div>
+    </div>
+  </main>
+
+  <!-- CAJA -->
+  <main id="tab-cash" class="tabPane">
+    <section class="card">
+      <div class="paneTitle">Caja</div>
+      <div class="paneSub">Aquí profundizamos en tensiones de tesorería (cobro/pago/corriente).</div>
+      <div class="paneEmpty">Siguiente paso: montamos esta pantalla con gráficos y tablas.</div>
+    </section>
+  </main>
+
+  <!-- RENTABILIDAD -->
+  <main id="tab-profit" class="tabPane">
+    <section class="card">
+      <div class="paneTitle">Rentabilidad</div>
+      <div class="paneSub">Aquí vemos por qué ganas o pierdes (margen bruto → costes fijos → EBITDA).</div>
+      <div class="paneEmpty">Siguiente paso: montamos esta pantalla con puente Ventas→EBITDA y BEP.</div>
+    </section>
+  </main>
+
+  <!-- Modal KPI (FUERA de HOME para que funcione en cualquier pestaña) -->
+  <div id="modal" class="modal hidden">
+    <div class="modalCard">
+      <div class="modalHeader">
+        <div>
+          <div id="modalTitle" class="modalTitle"></div>
+          <div id="modalSub" class="modalSub"></div>
+        </div>
+        <button id="modalClose" class="btn">Cerrar</button>
+      </div>
+      <div class="modalBody">
+        <canvas id="modalChart" height="120"></canvas>
+        <div id="modalTable" class="modalTable"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
