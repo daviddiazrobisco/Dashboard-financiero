@@ -1,3 +1,28 @@
+/* =========================
+   VARIABLES BASE
+   ========================= */
+:root {
+  --bg: #0b1020;
+  --card: #121a33;
+  --line: rgba(255,255,255,0.08);
+  --text: #eaf0ff;
+  --muted: #9aa6c3;
+  --good: #22c55e;
+  --warn: #f59e0b;
+  --bad: #ef4444;
+}
+
+/* RESET BÁSICO */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
 :root{
   --bg:#0b1020;
   --card:#121a33;
@@ -443,3 +468,4 @@ body{
   .opHint{ max-width: 100%; }
   .opControls{ flex-wrap:wrap; justify-content:flex-start; }
 }
+
