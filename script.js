@@ -2394,6 +2394,23 @@ updateQA();
     wfChart.config._wfData = { offsets: wf.offsets, values: wf.values };
   }
 
+  let opNeedsRender = false;
+
+  function isOperativoVisible(){
+    const pane = $("tab-operativo");
+    return !!(pane && pane.classList.contains("active"));
+  }
+
+  function renderOperativo(){
+    if (typeof Chart === "undefined") return;
+    if (!window.availableYears || !window.availableYears.length) return;
+
+    const visible = isOperativoVisible();
+    if (!visible){
+      opNeedsRender = true;
+      return;
+    }
+    opNeedsRender = false;
   function renderOperativo(){
     if (typeof Chart === "undefined") return;
     if (!window.availableYears || !window.availableYears.length) return;
@@ -2423,7 +2440,9 @@ updateQA();
 
   // Exponemos un “render now” para initTabs()
   window.__renderOperativoNow = function(){
-    try{ renderOperativo(); }catch(e){}
+    try{
+      renderOperativo();
+    }catch(e){}
   };
 
   // listeners
@@ -2436,7 +2455,9 @@ updateQA();
     const _render = window.render;
     window.render = function(){
       _render();
-      try{ renderOperativo(); }catch(e){}
+      try{
+        renderOperativo();
+      }catch(e){}
     };
   }
 
